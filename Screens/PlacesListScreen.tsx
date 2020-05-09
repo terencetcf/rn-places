@@ -74,7 +74,15 @@ const PlacesListScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
         refreshing={isRefreshing}
         data={places}
         renderItem={(itemData) => (
-          <PlaceItem place={itemData.item} onPress={() => {}} />
+          <PlaceItem
+            place={itemData.item}
+            onPress={() => {
+              navigation.navigate({
+                routeName: 'PlaceDetails',
+                params: { id: itemData.item.id, title: itemData.item.title },
+              });
+            }}
+          />
         )}
       />
       {addButton}

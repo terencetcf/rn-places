@@ -9,6 +9,8 @@ import Loader from '../components/Loader';
 import { IPlace } from '../models/Place';
 import * as placesActions from '../store/actions/places';
 import { useDispatch } from 'react-redux';
+import ImagePicker from '../components/ImagePicker';
+import LocationPicker from '../components/LocationPicker';
 
 type Params = {
   isFormValid: boolean;
@@ -25,6 +27,7 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string>();
 
   const validateForm = () => {
     return validator.isEmpty(title);
@@ -48,6 +51,7 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
     let errOccurred = false;
     const place = {
       title,
+      imageUri: selectedImage,
     } as IPlace;
 
     try {
@@ -67,6 +71,7 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
   useEffect(() => {
     return () => {
       setTitle('');
+      setSelectedImage(undefined);
     };
   }, []);
 
@@ -93,6 +98,12 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
     return <Loader />;
   }
 
+  const imageTakenHandler = (imagePath: string) => {
+    setSelectedImage(imagePath);
+  };
+
+  const locationSelectedHandler = (coordinate: ICoordinate) => {};
+
   return (
     <ScrollView>
       <View style={styles.form}>
@@ -102,6 +113,8 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
           onChangeText={(text) => setTitle(text)}
           required
         />
+        <ImagePicker onImageTaken={imageTakenHandler} />
+        <LocationPicker onLocationSelected={locationSelectedHandler} />
       </View>
     </ScrollView>
   );

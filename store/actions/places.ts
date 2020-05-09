@@ -1,9 +1,11 @@
 import { AnyAction } from 'redux';
 import { ThunkDispatch } from 'redux-thunk';
+import * as FileSystem from 'expo-file-system';
 
 import apiHelper from '../../helpers/api-helper';
 import { IRootState } from '../states';
 import { IPlace } from '../../models/Place';
+import { insertPlace, selectPlaces } from '../../helpers/db';
 
 export enum PlacesActions {
   ADD_PLACE = 'ADD_PLACE',
@@ -15,30 +17,54 @@ interface addPlace {
   place: IPlace;
 }
 
-interface getPlace {
+interface getPlaces {
   type: typeof PlacesActions.GET_PLACES;
   places: IPlace[];
 }
 
-export type PlacesActionTypes = addPlace | getPlace;
+export type PlacesActionTypes = addPlace | getPlaces;
 
 export const addPlace = (place: IPlace) => {
   return async (
     dispatch: ThunkDispatch<{}, {}, AnyAction>,
     getState: () => IRootState
   ) => {
-    // const state = getState();
-    // const data = await apiHelper.post(
-    //   `orders/${state.auth.userId}`,
-    //   {
-    //     ...orderData,
-    //   },
-    //   state.auth.token
-    // );
+    const fileName = place.imageUri.split('/').pop();
+    const docDirectoryPath = FileSystem.documentDirectory;
+    if (!docDirectoryPath) {
+      throw new Error(
+        'Something went wrong! Application is unable to locate the document directory path.'
+      );
+    }
+
+    const newPath = docDirectoryPath + fileName;
+    let addedPlace: IPlace;
+
+    try {
+      FileSystem.moveAsync({
+        from: place.imageUri,
+        to: newPath,
+      });
+
+      addedPlace = {
+        ...place,
+        imageUri: newPath,
+        address: 'somewhere at home',
+        lat: 15.6,
+        lng: 12.3,
+      };
+      const result = await insertPlace(addedPlace);
+      addedPlace.id = result.insertId.toString();
+    } catch (error) {
+      console.log(error);
+      throw new Error(
+        'Something went wrong! Application is unable to move the image location.'
+      );
+    }
 
     dispatch({
       type: PlacesActions.ADD_PLACE,
-      place: { ...place, id: new Date().getTime().toString() },
+      place: addedPlace,
     });
   };
 };
@@ -49,17 +75,26 @@ export const getPlaces = () => {
     getState: () => IRootState
   ) => {
     const state = getState();
-    // const data = await apiHelper.get(`orders/${state.auth.userId}`);
 
-    // const orders: Order[] = [];
-    // for (const key in data) {
-    //   const order: Order = { ...data[key], id: key };
-    //   orders.push(order);
-    // }
+    const places: IPlace[] = [];
+
+    try {
+      const result = await selectPlaces();
+
+      for (let i = 0; i < result.rows.length; i++) {
+        const row = result.rows.item(i);
+        places.push({ ...row, id: row.id.toString() } as IPlace);
+      }
+    } catch (error) {
+      console.log(error);
+      throw new Error(
+        'Something went wrong! Application is unable to load saved places!'
+      );
+    }
 
     return dispatch({
       type: PlacesActions.GET_PLACES,
-      places: state.placesState.places,
+      places,
     });
   };
 };
