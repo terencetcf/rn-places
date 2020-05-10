@@ -49,9 +49,6 @@ export const addPlace = (place: IPlace) => {
       addedPlace = {
         ...place,
         imageUri: newPath,
-        address: 'somewhere at home',
-        lat: 15.6,
-        lng: 12.3,
       };
       const result = await insertPlace(addedPlace);
       addedPlace.id = result.insertId.toString();

@@ -11,9 +11,11 @@ import * as placesActions from '../store/actions/places';
 import { useDispatch } from 'react-redux';
 import ImagePicker from '../components/ImagePicker';
 import LocationPicker from '../components/LocationPicker';
+import { ILocation } from '../models/Location';
 
 type Params = {
   isFormValid: boolean;
+  selectedLocation: ILocation;
   submit: () => void;
 };
 
@@ -28,6 +30,7 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
   const [selectedImage, setSelectedImage] = useState<string>();
+  const [selectedLocation, setSelectedLocation] = useState<ILocation>();
 
   const validateForm = () => {
     return validator.isEmpty(title);
@@ -52,6 +55,9 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
     const place = {
       title,
       imageUri: selectedImage,
+      lat: selectedLocation?.lat,
+      lng: selectedLocation?.lng,
+      address: 'Some address...',
     } as IPlace;
 
     try {
@@ -94,6 +100,13 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
     }
   }, [error]);
 
+  useEffect(() => {
+    const locationFromMap = navigation.getParam('selectedLocation');
+    if (locationFromMap) {
+      setSelectedLocation(locationFromMap);
+    }
+  }, [navigation]);
+
   if (isLoading) {
     return <Loader />;
   }
@@ -102,7 +115,9 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
     setSelectedImage(imagePath);
   };
 
-  const locationSelectedHandler = (coordinate: ICoordinate) => {};
+  const locationSelectedHandler = (location: ILocation) => {
+    setSelectedLocation(location);
+  };
 
   return (
     <ScrollView>
@@ -114,7 +129,11 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
           required
         />
         <ImagePicker onImageTaken={imageTakenHandler} />
-        <LocationPicker onLocationSelected={locationSelectedHandler} />
+        <LocationPicker
+          selectedLocation={selectedLocation}
+          onLocationSelected={locationSelectedHandler}
+          onNavigateToMapScreen={() => navigation.navigate('Map')}
+        />
       </View>
     </ScrollView>
   );
