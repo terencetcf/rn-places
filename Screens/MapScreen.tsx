@@ -7,6 +7,8 @@ import { ILocation } from '../models/Location';
 import DefaultHeaderButtons from '../components/default/DefaultHeaderButtons';
 
 type Params = {
+  selectedLocation: ILocation;
+  readonly: boolean;
   saveLocation: () => void;
 };
 
@@ -16,15 +18,29 @@ const MapScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
   navigation,
   ...props
 }) => {
-  const [selectedLocation, setSelectedLocation] = useState<ILocation>();
-  const mapRegion = {
+  const paramSelectedLocation = navigation.getParam('selectedLocation');
+  const isReadonly = navigation.getParam('readonly');
+  const [selectedLocation, setSelectedLocation] = useState<ILocation>(
+    paramSelectedLocation
+  );
+
+  let mapRegion = {
     latitude: 37.78,
     longitude: -122.43,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   };
 
+  if (selectedLocation) {
+    mapRegion.latitude = selectedLocation.lat;
+    mapRegion.longitude = selectedLocation.lng;
+  }
+
   const selectLocationHandler = (event: MapEvent) => {
+    if (isReadonly) {
+      return;
+    }
+
     const loc = event.nativeEvent.coordinate;
     setSelectedLocation({
       lat: loc.latitude,
@@ -33,7 +49,6 @@ const MapScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
   };
 
   const saveLocationHandler = useCallback(() => {
-    console.log(selectedLocation);
     if (!selectedLocation) {
       return;
     }
@@ -42,6 +57,10 @@ const MapScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
   }, [selectedLocation]);
 
   useEffect(() => {
+    if (!selectedLocation) {
+      return;
+    }
+
     navigation.setParams({ saveLocation: saveLocationHandler });
   }, [saveLocationHandler]);
 
@@ -67,18 +86,20 @@ const MapScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
 };
 
 MapScreen.navigationOptions = (navData) => {
+  const readOnly = navData.navigation.getParam('readonly');
   const saveLocation = navData.navigation.getParam('saveLocation');
 
   return {
-    headerRight: () => (
-      <DefaultHeaderButtons
-        navData={navData}
-        title="Save"
-        iconName="ios-checkmark-circle-outline"
-        iconNameAndroid="md-checkmark-circle-outline"
-        onPress={saveLocation}
-      />
-    ),
+    headerRight: () =>
+      !readOnly ? (
+        <DefaultHeaderButtons
+          navData={navData}
+          title="Save"
+          iconName="ios-checkmark-circle-outline"
+          iconNameAndroid="md-checkmark-circle-outline"
+          onPress={saveLocation}
+        />
+      ) : null,
   };
 };
 

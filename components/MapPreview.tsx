@@ -18,7 +18,10 @@ const MapPreview: React.FC<IProps> = ({ location, ...props }) => {
   }
 
   return (
-    <DefaultTouchable onPress={props.onPress} style={{ flex: 1 }}>
+    <DefaultTouchable
+      onPress={props.onPress}
+      style={{ flex: 1, width: '100%' }}
+    >
       <View style={{ ...styles.container, ...(props.style as object) }}>
         {imagePreviewUrl ? (
           <Image style={styles.image} source={{ uri: imagePreviewUrl }} />

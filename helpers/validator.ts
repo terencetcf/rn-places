@@ -1,6 +1,7 @@
+import { isEmpty } from 'lodash';
+
 export default {
-  isEmpty: (value: string | undefined | null) =>
-    value ? value.length > 0 : false,
+  isEmpty: (value: any) => isEmpty(value),
 
   isEmail: (value: string | undefined | null) =>
     value ? /\S+@\S+\.\S+/.test(value) : false,

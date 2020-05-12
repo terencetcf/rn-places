@@ -1,4 +1,3 @@
-const apiUrl = 'https://tt-shoping.firebaseio.com';
 const headers = {
   'Content-Type': 'application/json',
 };
@@ -13,6 +12,8 @@ const appFetch = async (
     if (token && typeof input === 'string') {
       input = `${input}?auth=${token}`;
     }
+
+    console.log(input);
 
     const response = await fetch(input, init);
 
@@ -31,12 +32,12 @@ const appFetch = async (
 
 export default {
   get: async (
-    apiPath: string,
+    apiUrl: string,
     token?: string,
     throwErrorIfStatusNotOk: boolean = true
   ) => {
     const response = await appFetch(
-      `${apiUrl}/${apiPath}.json`,
+      apiUrl,
       {
         method: 'GET',
         headers,
@@ -48,15 +49,13 @@ export default {
     return await response.json();
   },
   post: async (
-    apiPath: string,
+    apiUrl: string,
     data: any,
     token?: string,
     throwErrorIfStatusNotOk: boolean = true
   ) => {
-    const url =
-      apiPath.indexOf('http') === 0 ? apiPath : `${apiUrl}/${apiPath}.json`;
     const response = await appFetch(
-      url,
+      apiUrl,
       {
         method: 'POST',
         headers,
@@ -69,13 +68,13 @@ export default {
     return await response.json();
   },
   patch: async (
-    apiPath: string,
+    apiUrl: string,
     data: any,
     token?: string,
     throwErrorIfStatusNotOk: boolean = true
   ) => {
     return await appFetch(
-      `${apiUrl}/${apiPath}.json`,
+      apiUrl,
       {
         method: 'PATCH',
         headers,
@@ -86,12 +85,12 @@ export default {
     );
   },
   delete: async (
-    apiPath: string,
+    apiUrl: string,
     token?: string,
     throwErrorIfStatusNotOk: boolean = true
   ) => {
     return await appFetch(
-      `${apiUrl}/${apiPath}.json`,
+      apiUrl,
       {
         method: 'DELETE',
         headers,

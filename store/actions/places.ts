@@ -6,6 +6,7 @@ import apiHelper from '../../helpers/api-helper';
 import { IRootState } from '../states';
 import { IPlace } from '../../models/Place';
 import { insertPlace, selectPlaces } from '../../helpers/db';
+import ENV from '../../env';
 
 export enum PlacesActions {
   ADD_PLACE = 'ADD_PLACE',
@@ -45,19 +46,31 @@ export const addPlace = (place: IPlace) => {
         from: place.imageUri,
         to: newPath,
       });
-
-      addedPlace = {
-        ...place,
-        imageUri: newPath,
-      };
-      const result = await insertPlace(addedPlace);
-      addedPlace.id = result.insertId.toString();
     } catch (error) {
       console.log(error);
       throw new Error(
         'Something went wrong! Application is unable to move the image location.'
       );
     }
+
+    const resData = await apiHelper.get(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${place.lat},${place.lng}&key=${ENV.googleApiKey}`
+    );
+
+    let address = '';
+    if (!resData.results) {
+      address = 'Unable to obtain address from the selected location.';
+    }
+
+    address = resData.results[0].formatted_address;
+
+    addedPlace = {
+      ...place,
+      imageUri: newPath,
+      address,
+    };
+    const result = await insertPlace(addedPlace);
+    addedPlace.id = result.insertId.toString();
 
     dispatch({
       type: PlacesActions.ADD_PLACE,
@@ -71,8 +84,6 @@ export const getPlaces = () => {
     dispatch: ThunkDispatch<{}, {}, AnyAction>,
     getState: () => IRootState
   ) => {
-    const state = getState();
-
     const places: IPlace[] = [];
 
     try {

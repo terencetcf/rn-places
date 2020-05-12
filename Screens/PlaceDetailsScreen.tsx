@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, Image, View } from 'react-native';
+import { StyleSheet, ScrollView, Image, View, Text } from 'react-native';
 import { NavigationStackScreenComponent } from 'react-navigation-stack';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../store/states';
@@ -8,6 +8,7 @@ import { IPlace } from '../models/Place';
 import CenteredView from '../components/CenteredView';
 import MapPreview from '../components/MapPreview';
 import Colors from '../constants/Colors';
+import { ILocation } from '../models/Location';
 
 type Params = {
   id: string;
@@ -29,7 +30,10 @@ const PlaceDetailsScreen: NavigationStackScreenComponent<
     return <CenteredView message="Unable to find selected place" />;
   }
 
-  console.log(place);
+  const showMapHandler = () => {
+    const selectedLocation = { lat: place.lat, lng: place.lng } as ILocation;
+    navigation.navigate('Map', { selectedLocation, readonly: true });
+  };
 
   return (
     <ScrollView style={{ flex: 1 }}>
@@ -38,8 +42,11 @@ const PlaceDetailsScreen: NavigationStackScreenComponent<
         <MapPreview
           style={styles.map}
           location={{ lat: place.lat, lng: place.lng }}
-          onPress={() => {}}
+          onPress={showMapHandler}
         />
+        <View style={styles.address}>
+          <Text>{place.address}</Text>
+        </View>
       </View>
     </ScrollView>
   );
@@ -61,16 +68,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
-    width: '90%',
+    width: '100%',
     height: 200,
     borderColor: Colors.darkGrey,
     borderWidth: 1,
     marginBottom: 15,
   },
   map: {
-    width: '90%',
+    width: '100%',
     height: 200,
     borderColor: Colors.darkGrey,
     borderWidth: 1,
+  },
+  address: {
+    width: '100%',
+    marginVertical: 15,
   },
 });

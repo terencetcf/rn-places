@@ -25,7 +25,6 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
   navigation,
   ...props
 }) => {
-  const [isValid, setIsValid] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
@@ -33,7 +32,11 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
   const [selectedLocation, setSelectedLocation] = useState<ILocation>();
 
   const validateForm = () => {
-    return validator.isEmpty(title);
+    return (
+      !validator.isEmpty(title) &&
+      !validator.isEmpty(selectedImage) &&
+      !validator.isEmpty(selectedLocation)
+    );
   };
 
   const dispatch = useDispatch();
@@ -72,7 +75,7 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
     if (!errOccurred) {
       navigation.goBack();
     }
-  }, [title]);
+  }, [title, selectedImage, selectedLocation]);
 
   useEffect(() => {
     return () => {
@@ -84,7 +87,7 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
   useEffect(() => {
     const isFormValid = validateForm();
     navigation.setParams({ isFormValid });
-  }, [title]);
+  }, [title, selectedImage, selectedLocation]);
 
   useEffect(() => {
     navigation.setParams({ submit: submitHandler });
@@ -92,11 +95,7 @@ const NewPlaceScreen: NavigationStackScreenComponent<Params, ScreenProps> = ({
 
   useEffect(() => {
     if (error) {
-      Alert.alert(
-        'Error occurred!',
-        'Unable to save the product details, please try again later',
-        [{ text: 'Ok', style: 'default' }]
-      );
+      Alert.alert('Error occurred!', error, [{ text: 'Ok', style: 'default' }]);
     }
   }, [error]);
 
